@@ -20,25 +20,18 @@ class CosmeticManager:
     def __init__(self, mod_manager_path: str):
         self.__mod_manager_path = mod_manager_path
         self.profiles_path = os.path.join(mod_manager_path, "profiles")
+        # self._profiles = util.get_subdirectories(self.profiles_path)
         
-        # self.initialize()
+        self.initialize()
         
     def initialize(self):
-        # Get all cosmetic mod folders
+        cosmetic_mods = []
+        for profile in util.get_subdirectories(self.profiles_path):
+            cosmetic_mods.append(self.retrieve_profile_mods(profile))
         
         # Instantiate a list of CosmeticMod classes to store self-contained data for each mod.
         
         pass
-    
-    # TODO: REVIEW LATER FOR POSSIBLE DELETION!!!
-    # Essentially, this just adds a self-contained version of util.get_subdirectories()
-    # - This limits its functionality specifically to a profile, but allows for using
-    #   the `self.profiles_path` variable as an internal parameter!
-    #     - I initially thought it would be useful, but now I think it might be unnecessary...
-    def list_profiles(self, just_names: bool = False) -> list:
-        """Lists all profile subdirectories in the 'profiles_path' directory
-        """
-        return util.get_subdirectories(self.profiles_path, just_names)
     
     @staticmethod
     def retrieve_profile_mods(profile_path: str, cosmetic_only: bool = False) -> list:
@@ -57,10 +50,7 @@ class CosmeticManager:
         # Path containing all mod folders
         plugins_path = os.path.join(profile_path, "BepInEx", "plugins")
         
-        if not cosmetic_only:
-            return [os.path.join(plugins_path, mod) for mod in util.get_subdirectories(plugins_path)]
-        else:
-            return [os.path.join(plugins_path, mod) for mod in util.get_subdirectories(plugins_path) if util.has_cosmetic(mod)]
+        return [os.path.join(plugins_path, mod) for mod in util.get_subdirectories(plugins_path) if not cosmetic_only or util.has_cosmetic(mod)]
     
     @staticmethod
     def retrieve_all_cosmetics(profile_path: str) -> list:
@@ -91,7 +81,7 @@ class CosmeticManager:
 # Not yet implemented...
 # The plan is for this to be instantiated for each cosmetic mod in the CosmeticManager class.
 # 
-# NOTE: Might even implemented Base & Child classes (if there's ever a need for other than JUST cosmetic mods!)
+# NOTE: Might even implement Base & Child classes (if there's ever a need for other than JUST cosmetic mods!)
 class CosmeticMod:
     def __init__(self, path):
         self.path = path
@@ -115,8 +105,7 @@ def test():
     manager = CosmeticManager(test_start_dir)
     
     """Test output for class functionality, retrieving mods within profile(s)"""
-    for profile in manager.list_profiles():
-        # Output formatting
+    for profile in util.get_subdirectories(manager.profiles_path):
         print("\n\n" + "="*79 + "\n")
         print(os.path.basename(profile) + ":\n" + "-"*(len(str(os.path.basename(profile)))+1))
         
