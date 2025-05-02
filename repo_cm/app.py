@@ -22,16 +22,18 @@ class CosmeticManager:
         self.profiles_path = os.path.join(mod_manager_path, "profiles")
         # self._profiles = util.get_subdirectories(self.profiles_path)
         
-        self.initialize()
+        self.__mods = []
         
+        self.initialize()
+    
     def initialize(self):
         cosmetic_mods = []
         for profile in util.get_subdirectories(self.profiles_path):
-            cosmetic_mods.append(self.retrieve_profile_mods(profile))
+            cosmetic_mods.append(self.retrieve_profile_mods(profile, True))
         
-        # Instantiate a list of CosmeticMod classes to store self-contained data for each mod.
-        
-        pass
+        for profile in cosmetic_mods:
+            for mod in profile:
+                self.__mods.append(CosmeticMod(mod))
     
     @staticmethod
     def retrieve_profile_mods(profile_path: str, cosmetic_only: bool = False) -> list:
@@ -76,21 +78,19 @@ class CosmeticManager:
     def set_mm_path(self, new_path: str):
         self.__mod_manager_path = new_path
     mm_path = property(get_mm_path, set_mm_path)
+    
+    def get_mods(self) -> list:
+        return self.__mods
 
 
-# Not yet implemented...
-# The plan is for this to be instantiated for each cosmetic mod in the CosmeticManager class.
-# 
-# NOTE: Might even implement Base & Child classes (if there's ever a need for other than JUST cosmetic mods!)
 class CosmeticMod:
     def __init__(self, path):
         self.path = path
+        self.name = self.__str__()
+        self.profile = util.go_up_path(self.path, 3)
     
     def __str__(self):
         return str(os.path.basename(self.path))
-    
-    def initialize(self):
-        pass
 
 
 def run():
@@ -104,12 +104,6 @@ def test():
     
     manager = CosmeticManager(test_start_dir)
     
-    """Test output for class functionality, retrieving mods within profile(s)"""
-    for profile in util.get_subdirectories(manager.profiles_path):
-        print("\n\n" + "="*79 + "\n")
-        print(os.path.basename(profile) + ":\n" + "-"*(len(str(os.path.basename(profile)))+1))
-        
-        # ----------
-        
-        print(util.list_to_string(manager.retrieve_profile_mods(profile, True)))  # list all mod folders in each profile (cosmetic-only mod criteria)
-        # print(util.list_to_string(manager.retrieve_all_cosmetics(profile)))  # list all cosmetic model files for each profile
+    """Test output for CosmeticMod class functionality"""
+    for item in manager.get_mods():
+        print(os.path.basename(item.profile), ": ", item.path)
